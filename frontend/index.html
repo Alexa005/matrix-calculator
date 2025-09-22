@@ -1,1 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор матриц</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="container calculator-container">
+        <div class="header">
+            <h1><i class="bi bi-calculator"></i> Калькулятор матриц</h1>
+            <p class="text-muted">Выполнение операций с матрицами: определитель, сложение, умножение, решение СЛАУ и другие</p>
+        </div>
 
+        <!-- Выбор операции -->
+        <div class="row mb-4">
+            <div class="col-md-10 mx-auto">
+                <h4 class="mb-3">Выберите операцию:</h4>
+                <div class="operations-grid">
+                    <button class="btn btn-outline-primary btn-operation operation-active" data-operation="determinant">
+                        <i class="bi bi-kanban"></i> Определитель
+                    </button>
+                    <button class="btn btn-outline-primary btn-operation" data-operation="inverse">
+                        <i class="bi bi-arrow-left-right"></i> Обратная матрица
+                    </button>
+                    <button class="btn btn-outline-primary btn-operation" data-operation="addition">
+                        <i class="bi bi-plus-circle"></i> Сложение
+                    </button>
+                    <button class="btn btn-outline-primary btn-operation" data-operation="subtraction">
+                        <i class="bi bi-dash-circle"></i> Вычитание
+                    </button>
+                    <button class="btn btn-outline-primary btn-operation" data-operation="multiplication">
+                        <i class="bi bi-x-circle"></i> Умножение матриц
+                    </button>
+                    <button class="btn btn-outline-primary btn-operation" data-operation="scalar-multiplication">
+                        <i class="bi bi-x-circle-fill"></i> Умножение на число
+                    </button>
+                    <button class="btn btn-outline-primary btn-operation" data-operation="transpose">
+                        <i class="bi bi-arrow-down-up"></i> Транспонирование
+                    </button>
+                    <button class="btn btn-outline-primary btn-operation" data-operation="rank">
+                        <i class="bi bi-sort-numeric-down"></i> Ранг матрицы
+                    </button>
+                    <button class="btn btn-outline-primary btn-operation" data-operation="sle">
+                        <i class="bi bi-sliders"></i> Решение СЛАУ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Инструкция -->
+        <div class="instructions">
+            <h5><i class="bi bi-info-circle"></i> Инструкция:</h5>
+            <p id="instruction-text">Введите значения квадратной матрицы для вычисления определителя. Размер матрицы можно изменить с помощью кнопок ниже.</p>
+        </div>
+
+        <!-- Поле для ввода числа (для умножения на число) -->
+        <div class="operation-section d-none" id="scalar-input-section">
+            <h4>Введите число для умножения</h4>
+            <div class="d-flex justify-content-center align-items-center">
+                <input type="number" class="form-control scalar-input" id="scalar-value" value="1">
+            </div>
+        </div>
+
+        <!-- Секция для матрицы A -->
+        <div class="operation-section" id="matrix-a-section">
+            <h4 class="matrix-title">Матрица A</h4>
+
+            <div class="dimension-control">
+                <span class="fw-medium">Размер матрицы:</span>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-secondary btn-dimension" id="decrease-rows-a">-</button>
+                    <span class="dimension-badge mx-2" id="rows-a">2</span>
+                    <button class="btn btn-outline-secondary btn-dimension" id="increase-rows-a">+</button>
+                </div>
+
+                <span class="mx-2">×</span>
+
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-secondary btn-dimension" id="decrease-cols-a">-</button>
+                    <span class="dimension-badge mx-2" id="cols-a">2</span>
+                    <button class="btn btn-outline-secondary btn-dimension" id="increase-cols-a">+</button>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center">
+                <span class="matrix-bracket">[</span>
+                <div class="matrix-container" id="matrix-a">
+                    <!-- Matrix inputs will be generated here -->
+                </div>
+                <span class="matrix-bracket">]</span>
+            </div>
+        </div>
+
+        <!-- Секция для матрицы B (только для сложения, вычитания и умножения) -->
+        <div class="operation-section d-none" id="matrix-b-section">
+            <h4 class="matrix-title">Матрица B</h4>
+
+            <div class="dimension-control">
+                <span class="fw-medium">Размер матрицы:</span>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-secondary btn-dimension" id="decrease-rows-b">-</button>
+                    <span class="dimension-badge mx-2" id="rows-b">2</span>
+                    <button class="btn btn-outline-secondary btn-dimension" id="increase-rows-b">+</button>
+                </div>
+
+                <span class="mx-2">×</span>
+
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-secondary btn-dimension" id="decrease-cols-b">-</button>
+                    <span class="dimension-badge mx-2" id="cols-b">2</span>
+                    <button class="btn btn-outline-secondary btn-dimension" id="increase-cols-b">+</button>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center">
+                <span class="matrix-bracket">[</span>
+                <div class="matrix-container" id="matrix-b">
+                    <!-- Matrix inputs will be generated here -->
+                </div>
+                <span class="matrix-bracket">]</span>
+            </div>
+        </div>
+
+        <!-- Секция для матрицы значений СЛАУ -->
+        <div class="operation-section d-none" id="vector-b-section">
+            <h4>Вектор значений B (для СЛАУ)</h4>
+            <div class="d-flex justify-content-center">
+                <span class="matrix-bracket">[</span>
+                <div class="matrix-container" id="vector-b">
+                    <!-- Vector inputs will be generated here -->
+                </div>
+                <span class="matrix-bracket">]</span>
+            </div>
+        </div>
+
+        <!-- Кнопка расчета -->
+        <div class="text-center">
+            <button class="btn btn-success btn-calculate" id="calculate">
+                <i class="bi bi-calculator"></i> Вычислить
+            </button>
+        </div>
+
+        <!-- Блок результатов -->
+        <div class="operation-section" id="result-section">
+            <h4><i class="bi bi-check-circle"></i> Результат</h4>
+            <div id="result" class="text-center p-3 result-matrix">
+                <p class="text-muted m-0">Здесь будет отображен результат вычислений</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
