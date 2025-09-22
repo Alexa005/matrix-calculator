@@ -60,8 +60,12 @@
         <!-- Поле для ввода числа (для умножения на число) -->
         <div class="operation-section d-none" id="scalar-input-section">
             <h4>Введите число для умножения</h4>
-            <div class="d-flex justify-content-center align-items-center">
-                <input type="number" class="form-control scalar-input" id="scalar-value" value="1">
+            <div class="scalar-input-section">
+                <input type="text" class="form-control scalar-input" id="scalar-value" value="1"
+                       placeholder="Например: 2.5 или 1/2">
+                <div class="scalar-examples">
+                    Можно вводить дроби (1/2, 3/4) и десятичные числа (0.5, 2.75)
+                </div>
             </div>
         </div>
 

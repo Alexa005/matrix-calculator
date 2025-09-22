@@ -63,6 +63,30 @@
 
     calculateButton.addEventListener('click', calculate);
 
+    // Функция для преобразования строки в число (поддерживает дроби)
+    function parseNumber(input) {
+        if (!input) return 0;
+
+        // Удаляем пробелы
+        input = input.trim();
+
+        // Проверяем, является ли ввод дробью
+        if (input.includes('/')) {
+            const parts = input.split('/');
+            if (parts.length === 2) {
+                const numerator = parseFloat(parts[0]);
+                const denominator = parseFloat(parts[1]);
+                if (denominator !== 0 && !isNaN(numerator) && !isNaN(denominator)) {
+                    return numerator / denominator;
+                }
+            }
+        }
+
+        // Пробуем преобразовать в число
+        const result = parseFloat(input);
+        return isNaN(result) ? 0 : result;
+    }
+
     // Функции
     function updateOperationUI() {
         // Обновляем инструкцию
@@ -83,7 +107,7 @@
                 instructionText.textContent = 'Введите значения двух матриц. Число столбцов матрицы A должно равняться числу строк матрицы B.';
                 break;
             case 'scalar-multiplication':
-                instructionText.textContent = 'Введите матрицу и число для умножения.';
+                instructionText.textContent = 'Введите матрицу и число для умножения. Можно использовать дроби (1/2) и десятичные числа (0.5).';
                 break;
             case 'transpose':
                 instructionText.textContent = 'Введите матрицу для транспонирования.';
@@ -169,6 +193,7 @@
                 input.type = 'number';
                 input.className = 'matrix-input form-control';
                 input.value = i === j ? '1' : '0';
+                input.step = 'any'; // Разрешаем ввод дробей
                 input.dataset.row = i;
                 input.dataset.col = j;
                 rowDiv.appendChild(input);
@@ -190,6 +215,7 @@
             input.type = 'number';
             input.className = 'matrix-input form-control';
             input.value = '0';
+            input.step = 'any'; // Разрешаем ввод дробей
             input.dataset.index = i;
             rowDiv.appendChild(input);
 
@@ -208,7 +234,7 @@
             matrixData[i] = [];
             for (let j = 0; j < cols; j++) {
                 const input = container.querySelector(`input[data-row="${i}"][data-col="${j}"]`);
-                matrixData[i][j] = parseFloat(input.value) || 0;
+                matrixData[i][j] = parseNumber(input.value);
             }
         }
 
@@ -220,7 +246,7 @@
         const vectorData = [];
 
         for (let i = 0; i < inputs.length; i++) {
-            vectorData.push(parseFloat(inputs[i].value) || 0);
+            vectorData.push(parseNumber(inputs[i].value));
         }
 
         return vectorData;
@@ -230,7 +256,7 @@
         const matrixA = getMatrixValues('a');
         const matrixB = ['addition', 'subtraction', 'multiplication'].includes(currentOperation) ? getMatrixValues('b') : null;
         const vectorB = currentOperation === 'sle' ? getVectorValues() : null;
-        const scalarValue = currentOperation === 'scalar-multiplication' ? parseFloat(scalarInput.value) || 1 : null;
+        const scalarValue = currentOperation === 'scalar-multiplication' ? parseNumber(scalarInput.value) : null;
 
         // Здесь будет вызов API к бэкенду
         // Временно просто отображаем результат с помощью функций-заглушек
@@ -254,7 +280,7 @@
                 resultHTML = `<p>Результат умножения матриц A × B:</p><pre>${formatMatrix(simulateMultiplication(matrixA, matrixB))}</pre>`;
                 break;
             case 'scalar-multiplication':
-                resultHTML = `<p>Результат умножения матрицы A на ${scalarValue}:</p><pre>${formatMatrix(simulateScalarMultiplication(matrixA, scalarValue))}</pre>`;
+                resultHTML = `<p>Результат умножения матрицы A на ${scalarInput.value}:</p><pre>${formatMatrix(simulateScalarMultiplication(matrixA, scalarValue))}</pre>`;
                 break;
             case 'transpose':
                 resultHTML = `<p>Транспонированная матрица A<sup>T</sup>:</p><pre>${formatMatrix(simulateTranspose(matrixA))}</pre>`;
@@ -276,7 +302,7 @@
     function simulateDeterminant(matrix) {
         // Заглушка для вычисления определителя
         if (matrix.length === 2 && matrix[0].length === 2) {
-            return (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]).toFixed(2);
+            return (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]).toFixed(4);
         }
         return "Для демонстрации";
     }
@@ -367,7 +393,7 @@
         // Заглушка для решения СЛАУ
         const result = [];
         for (let i = 0; i < vectorB.length; i++) {
-            result.push((vectorB[i] / matrixA[i][i]).toFixed(2));
+            result.push((vectorB[i] / matrixA[i][i]).toFixed(4));
         }
         return result;
     }
@@ -376,11 +402,11 @@
         if (typeof matrix === 'string') return matrix;
 
         return matrix.map(row =>
-            row.map(val => typeof val === 'number' ? val.toFixed(2) : val).join('\t')
+            row.map(val => typeof val === 'number' ? val.toFixed(4) : val).join('\t')
         ).join('\n');
     }
 
     function formatVector(vector) {
-        return vector.map(val => typeof val === 'number' ? val.toFixed(2) : val).join('\n');
+        return vector.map(val => typeof val === 'number' ? val.toFixed(4) : val).join('\n');
     }
 });
