@@ -1,13 +1,49 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.matrix_core import (
-    matrix_add,
-    matrix_multiply,
-    determinant_optimized as determinant,
-    inverse,
-    solve_system_gaussian
-)
+import sys
+from pathlib import Path
+
+# Добавляем родительскую директорию в путь Python
+current_dir = Path(__file__).parent
+parent_dir = current_dir.parent
+sys.path.append(str(parent_dir))
+
+try:
+    from backend.matrix_core import (
+        matrix_add,
+        matrix_multiply,
+        determinant_optimized as determinant,
+        inverse,
+        solve_system_gaussian
+    )
+except ImportError as e:
+    print(f"Import error: {e}")
+    print("Make sure backend/matrix_core.py exists and has the required functions")
+
+
+    # Можно использовать заглушки для тестирования
+    def matrix_add(a, b):
+        raise ValueError("Backend module not available")
+
+
+    def matrix_multiply(a, b):
+        raise ValueError("Backend module not available")
+
+
+    def determinant_optimized(matrix):
+        raise ValueError("Backend module not available")
+
+
+    def inverse(matrix):
+        raise ValueError("Backend module not available")
+
+
+    def solve_system_gaussian(coefficients, constants):
+        raise ValueError("Backend module not available")
+
+
+    determinant = determinant_optimized
 app = FastAPI()
 
 # Настройка CORS
@@ -83,3 +119,26 @@ async def solve_system(request: SLAERequest):
         return {"result": result}
     except ValueError as e:
         return {"error": str(e)}
+
+
+# Транспонирование
+@app.post("/transpose")
+async def transpose_matrix(request: MatrixRequest):
+    try:
+        from backend.matrix_core import transpose
+        result = transpose(request.matrix)
+        return {"result": result}
+    except ValueError as e:
+        return {"error": str(e)}
+
+# Ранг
+@app.post("/rank")
+async def rank_matrix(request: MatrixRequest):
+    try:
+        from backend.matrix_core import rank
+        result = rank(request.matrix)
+        return {"result": result}
+    except ValueError as e:
+        return {"error": str(e)}
+
+

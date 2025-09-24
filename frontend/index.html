@@ -35,9 +35,6 @@
                     <button class="btn btn-outline-primary btn-operation" data-operation="multiplication">
                         <i class="bi bi-x-circle"></i> Умножение матриц
                     </button>
-                    <button class="btn btn-outline-primary btn-operation" data-operation="scalar-multiplication">
-                        <i class="bi bi-x-circle-fill"></i> Умножение на число
-                    </button>
                     <button class="btn btn-outline-primary btn-operation" data-operation="transpose">
                         <i class="bi bi-arrow-down-up"></i> Транспонирование
                     </button>
@@ -55,18 +52,6 @@
         <div class="instructions">
             <h5><i class="bi bi-info-circle"></i> Инструкция:</h5>
             <p id="instruction-text">Введите значения квадратной матрицы для вычисления определителя. Размер матрицы можно изменить с помощью кнопок ниже.</p>
-        </div>
-
-        <!-- Поле для ввода числа (для умножения на число) -->
-        <div class="operation-section d-none" id="scalar-input-section">
-            <h4>Введите число для умножения</h4>
-            <div class="scalar-input-section">
-                <input type="text" class="form-control scalar-input" id="scalar-value" value="1"
-                       placeholder="Например: 2.5 или 1/2">
-                <div class="scalar-examples">
-                    Можно вводить дроби (1/2, 3/4) и десятичные числа (0.5, 2.75)
-                </div>
-            </div>
         </div>
 
         <!-- Секция для матрицы A -->
@@ -147,6 +132,12 @@
                 <i class="bi bi-calculator"></i> Вычислить
             </button>
         </div>
+
+        <!-- Блок ошибок -->
+        <div id="errorContainer" class="alert alert-danger mt-3" style="display:none;">
+            <span id="errorContent"></span>
+        </div>
+
 
         <!-- Блок результатов -->
         <div class="operation-section" id="result-section">

@@ -56,7 +56,7 @@ class MatrixAPIClient {
      */
     async healthCheck() {
         try {
-            const response = await fetch(`${this.baseURL}/health`, { timeout: 3000 });
+            const response = await fetch(`${this.baseURL}/health`);
             const data = await response.json();
             return data.status === 'ok';
         } catch (error) {
@@ -135,6 +135,18 @@ class MatrixAPIClient {
             constants 
         });
     }
+
+    async transposeMatrix(matrix) {
+        this._validateMatrix(matrix, 'transpose');
+        return await this._request('transpose', { matrix });
+    }
+
+    async rankMatrix(matrix) {
+        this._validateMatrix(matrix, 'rank');
+        return await this._request('rank', { matrix });
+    }
+
+
 
     /**
      * Валидация матрицы

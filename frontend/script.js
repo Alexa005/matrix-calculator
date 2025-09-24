@@ -432,20 +432,17 @@ class MatrixCalculatorUI {
                     this.displayResult('Результат умножения A × B:', this.formatMatrix(result));
                     break;
 
-                case 'scalar-multiplication':
-                    result = matrixA.map(row => row.map(val => val * scalarValue));
-                    this.displayResult(`Результат умножения на ${scalarValue}:`, this.formatMatrix(result));
+                case 'transpose': {
+                    result = await window.matrixAPI.transposeMatrix(matrixA);
+                    this.displayResult("Транспонированная матрица:", this.formatMatrix(result));
                     break;
+                }
 
-                case 'transpose':
-                    result = matrixA[0].map((_, colIndex) => matrixA.map(row => row[colIndex]));
-                    this.displayResult('Транспонированная матрица A<sup>T</sup>:', this.formatMatrix(result));
+                case 'rank': {
+                    result = await window.matrixAPI.rankMatrix(matrixA);
+                    this.displayResult("Ранг матрицы:", result);
                     break;
-
-                case 'rank':
-                    result = this.calculateMatrixRank(matrixA);
-                    this.displayResult(`Ранг матрицы A = ${result}`);
-                    break;
+                }
 
                 case 'sle':
                     result = await window.matrixAPI.solveSystem(matrixA, vectorB);
@@ -562,7 +559,15 @@ class MatrixCalculatorUI {
     }
 }
 
-// Инициализация приложения после загрузки DOM
-document.addEventListener('DOMContentLoaded', function () {
-    new MatrixCalculatorUI();
+// Запускаем приложение только после полной загрузки DOM
+document.addEventListener("DOMContentLoaded", () => {
+    const app = new MatrixCalculatorUI();
+
+    // Безопасно навешиваем события (если элементы найдены)
+    if (app.scalarNumerator) {
+        app.scalarNumerator.addEventListener('input', () => app.validateScalarInput());
+    }
+    if (app.scalarDenominator) {
+        app.scalarDenominator.addEventListener('input', () => app.validateScalarInput());
+    }
 });

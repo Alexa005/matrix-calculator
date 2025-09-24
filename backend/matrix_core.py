@@ -266,3 +266,50 @@ def solve_system_gaussian(coefficients: list[list], constants: list) -> list:
         # augmented[i][i] уже равно 1 после нормализации
 
     return solution
+
+
+def transpose(matrix: list[list]) -> list[list]:
+    if not matrix:
+        raise ValueError("Матрица не может быть пустой")
+    rows = len(matrix)
+    cols = len(matrix[0])
+    for i in range(rows):
+        if len(matrix[i]) != cols:
+            raise ValueError("Все строки должны иметь одинаковую длину")
+    return [[matrix[j][i] for j in range(rows)] for i in range(cols)]
+
+
+def rank(matrix: list[list]) -> int:
+    if not matrix:
+        raise ValueError("Матрица не может быть пустой")
+
+    # Копируем матрицу в вещественных числах
+    mat = [row[:] for row in matrix]
+    rows, cols = len(mat), len(mat[0])
+    rank_val = 0
+
+    for col in range(cols):
+        pivot = None
+        for r in range(rank_val, rows):
+            if abs(mat[r][col]) > 1e-12:
+                pivot = r
+                break
+
+        if pivot is None:
+            continue
+
+        mat[rank_val], mat[pivot] = mat[pivot], mat[rank_val]
+        pivot_val = mat[rank_val][col]
+        mat[rank_val] = [x / pivot_val for x in mat[rank_val]]
+
+        for r in range(rows):
+            if r != rank_val and abs(mat[r][col]) > 1e-12:
+                factor = mat[r][col]
+                mat[r] = [x - factor * y for x, y in zip(mat[r], mat[rank_val])]
+
+        rank_val += 1
+
+    return rank_val
+
+
+
