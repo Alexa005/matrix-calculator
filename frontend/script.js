@@ -1,187 +1,236 @@
-﻿document.addEventListener('DOMContentLoaded', function () {
-    // Элементы DOM
-    const operationButtons = document.querySelectorAll('.btn-operation');
-    const scalarInputSection = document.getElementById('scalar-input-section');
-    const matrixASection = document.getElementById('matrix-a-section');
-    const matrixBSection = document.getElementById('matrix-b-section');
-    const vectorBSection = document.getElementById('vector-b-section');
+﻿// script.js - Основная логика матричного калькулятора
+class MatrixCalculatorUI {
+    constructor() {
+        this.currentOperation = 'determinant';
+        this.rowsA = 2;
+        this.colsA = 2;
+        this.rowsB = 2;
+        this.colsB = 2;
 
-    // Кнопки изменения размера матрицы A
-    const decreaseRowsABtn = document.getElementById('decrease-rows-a');
-    const increaseRowsABtn = document.getElementById('increase-rows-a');
-    const decreaseColsABtn = document.getElementById('decrease-cols-a');
-    const increaseColsABtn = document.getElementById('increase-cols-a');
-    const rowsADisplay = document.getElementById('rows-a');
-    const colsADisplay = document.getElementById('cols-a');
+        this.initializeElements();
+        this.setupEventListeners();
+        this.init();
+    }
 
-    // Кнопки изменения размера матрицы B
-    const decreaseRowsBBtn = document.getElementById('decrease-rows-b');
-    const increaseRowsBBtn = document.getElementById('increase-rows-b');
-    const decreaseColsBBtn = document.getElementById('decrease-cols-b');
-    const increaseColsBBtn = document.getElementById('increase-cols-b');
-    const rowsBDisplay = document.getElementById('rows-b');
-    const colsBDisplay = document.getElementById('cols-b');
+    /**
+     * Инициализация DOM элементов
+     */
+    initializeElements() {
+        // Основные контейнеры
+        this.operationButtons = document.querySelectorAll('.btn-operation');
+        this.scalarInputSection = document.getElementById('scalar-input-section');
+        this.matrixASection = document.getElementById('matrix-a-section');
+        this.matrixBSection = document.getElementById('matrix-b-section');
+        this.vectorBSection = document.getElementById('vector-b-section');
 
-    const matrixAContainer = document.getElementById('matrix-a');
-    const matrixBContainer = document.getElementById('matrix-b');
-    const vectorBContainer = document.getElementById('vector-b');
-    const calculateButton = document.getElementById('calculate');
-    const resultContainer = document.getElementById('result');
-    const instructionText = document.getElementById('instruction-text');
-    const scalarInput = document.getElementById('scalar-value');
+        // Элементы матрицы A
+        this.decreaseRowsABtn = document.getElementById('decrease-rows-a');
+        this.increaseRowsABtn = document.getElementById('increase-rows-a');
+        this.decreaseColsABtn = document.getElementById('decrease-cols-a');
+        this.increaseColsABtn = document.getElementById('increase-cols-a');
+        this.rowsADisplay = document.getElementById('rows-a');
+        this.colsADisplay = document.getElementById('cols-a');
+        this.matrixAContainer = document.getElementById('matrix-a');
 
-    // Текущие настройки
-    let currentOperation = 'determinant';
-    let rowsA = 2, colsA = 2;
-    let rowsB = 2, colsB = 2;
+        // Элементы матрицы B
+        this.decreaseRowsBBtn = document.getElementById('decrease-rows-b');
+        this.increaseRowsBBtn = document.getElementById('increase-rows-b');
+        this.decreaseColsBBtn = document.getElementById('decrease-cols-b');
+        this.increaseColsBBtn = document.getElementById('increase-cols-b');
+        this.rowsBDisplay = document.getElementById('rows-b');
+        this.colsBDisplay = document.getElementById('cols-b');
+        this.matrixBContainer = document.getElementById('matrix-b');
 
-    // Инициализация
-    generateMatrix('a', rowsA, colsA);
-    updateOperationUI();
+        // Вектор и скаляр
+        this.vectorBContainer = document.getElementById('vector-b');
+        this.scalarInput = document.getElementById('scalar-value');
 
-    // Обработчики событий
-    operationButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            operationButtons.forEach(btn => btn.classList.remove('operation-active'));
-            this.classList.add('operation-active');
-            currentOperation = this.dataset.operation;
-            updateOperationUI();
+        // Управление и отображение
+        this.calculateButton = document.getElementById('calculate');
+        this.resultContainer = document.getElementById('result');
+        this.instructionText = document.getElementById('instruction-text');
+        this.errorContainer = document.getElementById('errorContainer');
+        this.errorContent = document.getElementById('errorContent');
+    }
+
+    /**
+     * Настройка обработчиков событий
+     */
+    setupEventListeners() {
+        // Обработчики операций
+        this.operationButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleOperationChange(e));
         });
-    });
 
-    // Обработчики для изменения размера матрицы A
-    decreaseRowsABtn.addEventListener('click', () => updateMatrixSize('a', 'rows', -1));
-    increaseRowsABtn.addEventListener('click', () => updateMatrixSize('a', 'rows', 1));
-    decreaseColsABtn.addEventListener('click', () => updateMatrixSize('a', 'cols', -1));
-    increaseColsABtn.addEventListener('click', () => updateMatrixSize('a', 'cols', 1));
+        // Обработчики изменения размеров матрицы A
+        this.decreaseRowsABtn.addEventListener('click', () => this.updateMatrixSize('a', 'rows', -1));
+        this.increaseRowsABtn.addEventListener('click', () => this.updateMatrixSize('a', 'rows', 1));
+        this.decreaseColsABtn.addEventListener('click', () => this.updateMatrixSize('a', 'cols', -1));
+        this.increaseColsABtn.addEventListener('click', () => this.updateMatrixSize('a', 'cols', 1));
 
-    // Обработчики для изменения размера матрицы B
-    decreaseRowsBBtn.addEventListener('click', () => updateMatrixSize('b', 'rows', -1));
-    increaseRowsBBtn.addEventListener('click', () => updateMatrixSize('b', 'rows', 1));
-    decreaseColsBBtn.addEventListener('click', () => updateMatrixSize('b', 'cols', -1));
-    increaseColsBBtn.addEventListener('click', () => updateMatrixSize('b', 'cols', 1));
+        // Обработчики изменения размеров матрицы B
+        this.decreaseRowsBBtn.addEventListener('click', () => this.updateMatrixSize('b', 'rows', -1));
+        this.increaseRowsBBtn.addEventListener('click', () => this.updateMatrixSize('b', 'rows', 1));
+        this.decreaseColsBBtn.addEventListener('click', () => this.updateMatrixSize('b', 'cols', -1));
+        this.increaseColsBBtn.addEventListener('click', () => this.updateMatrixSize('b', 'cols', 1));
 
-    calculateButton.addEventListener('click', calculate);
+        // Основные обработчики
+        this.calculateButton.addEventListener('click', () => this.calculate());
+        this.scalarInput.addEventListener('input', () => this.validateScalarInput());
 
-    // Функция для преобразования строки в число (поддерживает дроби)
-    function parseNumber(input) {
-        if (!input) return 0;
+        // Валидация в реальном времени
+        this.matrixAContainer.addEventListener('input', () => this.validateMatrixInput('a'));
+        this.matrixBContainer.addEventListener('input', () => this.validateMatrixInput('b'));
+        this.vectorBContainer.addEventListener('input', () => this.validateVectorInput());
+    }
 
-        // Удаляем пробелы
-        input = input.trim();
+    /**
+     * Инициализация приложения
+     */
+    async init() {
+        this.generateMatrix('a', this.rowsA, this.colsA);
+        this.updateUI();
+        await this.checkServerStatus();
+    }
 
-        // Проверяем, является ли ввод дробью
-        if (input.includes('/')) {
-            const parts = input.split('/');
-            if (parts.length === 2) {
-                const numerator = parseFloat(parts[0]);
-                const denominator = parseFloat(parts[1]);
-                if (denominator !== 0 && !isNaN(numerator) && !isNaN(denominator)) {
-                    return numerator / denominator;
-                }
+    /**
+     * Проверка статуса сервера
+     */
+    async checkServerStatus() {
+        try {
+            const isHealthy = await window.matrixAPI.healthCheck();
+            if (!isHealthy) {
+                this.showWarning('Сервер бэкенда не доступен. Убедитесь, что бэкенд запущен на localhost:8000');
+            }
+        } catch (error) {
+            console.warn('Не удалось проверить статус сервера:', error);
+        }
+    }
+
+    /**
+     * Обработчик смены операции
+     */
+    handleOperationChange(event) {
+        this.operationButtons.forEach(btn => btn.classList.remove('operation-active'));
+        event.currentTarget.classList.add('operation-active');
+        this.currentOperation = event.currentTarget.dataset.operation;
+        this.updateUI();
+    }
+
+    /**
+     * Обновление интерфейса
+     */
+    updateUI() {
+        this.updateInstructionText();
+        this.updateVisibleSections();
+        this.adjustMatrixDimensions();
+        this.validateOperation();
+    }
+
+    /**
+     * Обновление текста инструкции
+     */
+    updateInstructionText() {
+        const instructions = {
+            'determinant': 'Введите значения квадратной матрицы для вычисления определителя.',
+            'inverse': 'Введите значения квадратной матрицы для нахождения обратной матрицы.',
+            'addition': 'Введите значения двух матриц одинакового размера для выполнения сложения.',
+            'subtraction': 'Введите значения двух матриц одинакового размера для выполнения вычитания.',
+            'multiplication': 'Введите значения двух матриц. Число столбцов матрицы A должно равняться числу строк матрицы B.',
+            'scalar-multiplication': 'Введите матрицу и число для умножения.',
+            'transpose': 'Введите матрицу для транспонирования.',
+            'rank': 'Введите матрицу для нахождения её ранга.',
+            'sle': 'Введите матрицу коэффициентов A и вектор значений B для решения системы линейных уравнений.'
+        };
+
+        this.instructionText.textContent = instructions[this.currentOperation] || 'Выберите операцию для продолжения.';
+    }
+
+    /**
+     * Обновление видимых секций
+     */
+    updateVisibleSections() {
+        // Скрываем все дополнительные секции
+        [this.scalarInputSection, this.matrixBSection, this.vectorBSection]
+            .forEach(section => section.classList.add('d-none'));
+
+        // Показываем нужные секции
+        if (['addition', 'subtraction', 'multiplication'].includes(this.currentOperation)) {
+            this.matrixBSection.classList.remove('d-none');
+        }
+
+        if (this.currentOperation === 'scalar-multiplication') {
+            this.scalarInputSection.classList.remove('d-none');
+        }
+
+        if (this.currentOperation === 'sle') {
+            this.vectorBSection.classList.remove('d-none');
+            this.updateVectorSize();
+        }
+    }
+
+    /**
+     * Корректировка размеров матриц
+     */
+    adjustMatrixDimensions() {
+        if (['determinant', 'inverse'].includes(this.currentOperation)) {
+            if (this.colsA !== this.rowsA) {
+                this.colsA = this.rowsA;
+                this.colsADisplay.textContent = this.colsA;
+                this.generateMatrix('a', this.rowsA, this.colsA);
             }
         }
 
-        // Пробуем преобразовать в число
-        const result = parseFloat(input);
-        return isNaN(result) ? 0 : result;
-    }
-
-    // Функции
-    function updateOperationUI() {
-        // Обновляем инструкцию
-        switch (currentOperation) {
-            case 'determinant':
-                instructionText.textContent = 'Введите значения квадратной матрицы для вычисления определителя.';
-                break;
-            case 'inverse':
-                instructionText.textContent = 'Введите значения квадратной матрицы для нахождения обратной матрицы.';
-                break;
-            case 'addition':
-                instructionText.textContent = 'Введите значения двух матриц одинакового размера для выполнения сложения.';
-                break;
-            case 'subtraction':
-                instructionText.textContent = 'Введите значения двух матриц одинакового размера для выполнения вычитания.';
-                break;
-            case 'multiplication':
-                instructionText.textContent = 'Введите значения двух матриц. Число столбцов матрицы A должно равняться числу строк матрицы B.';
-                break;
-            case 'scalar-multiplication':
-                instructionText.textContent = 'Введите матрицу и число для умножения. Можно использовать дроби (1/2) и десятичные числа (0.5).';
-                break;
-            case 'transpose':
-                instructionText.textContent = 'Введите матрицу для транспонирования.';
-                break;
-            case 'rank':
-                instructionText.textContent = 'Введите матрицу для нахождения её ранга.';
-                break;
-            case 'sle':
-                instructionText.textContent = 'Введите матрицу коэффициентов A и вектор значений B для решения системы линейных уравнений.';
-                break;
+        if (this.currentOperation === 'multiplication' && this.colsA !== this.rowsB) {
+            this.rowsB = this.colsA;
+            this.rowsBDisplay.textContent = this.rowsB;
+            this.generateMatrix('b', this.rowsB, this.colsB);
         }
 
-        // Показываем/скрываем секции в зависимости от операции
-        scalarInputSection.classList.add('d-none');
-        matrixBSection.classList.add('d-none');
-        vectorBSection.classList.add('d-none');
-
-        if (currentOperation === 'addition' || currentOperation === 'subtraction' || currentOperation === 'multiplication') {
-            matrixBSection.classList.remove('d-none');
-            updateMatrixSize('b', 'rows', 0); // Обновляем без изменения размера
-            updateMatrixSize('b', 'cols', 0); // Обновляем без изменения размера
-        }
-
-        if (currentOperation === 'scalar-multiplication') {
-            scalarInputSection.classList.remove('d-none');
-        }
-
-        if (currentOperation === 'sle') {
-            vectorBSection.classList.remove('d-none');
-            updateVectorSize();
-        }
-
-        // Для операций с квадратными матрицами ограничиваем размер
-        if (currentOperation === 'determinant' || currentOperation === 'inverse') {
-            colsADisplay.textContent = rowsA;
-            colsA = rowsA;
-            generateMatrix('a', rowsA, colsA);
+        if (this.currentOperation === 'sle') {
+            this.updateVectorSize();
         }
     }
 
-    function updateMatrixSize(matrix, dimension, change) {
+    /**
+     * Обновление размера матрицы
+     */
+    updateMatrixSize(matrix, dimension, change) {
         if (matrix === 'a') {
             if (dimension === 'rows') {
-                rowsA = Math.max(1, Math.min(6, rowsA + change));
-                rowsADisplay.textContent = rowsA;
-
-                // Для квадратных матриц обновляем также столбцы
-                if (currentOperation === 'determinant' || currentOperation === 'inverse') {
-                    colsA = rowsA;
-                    colsADisplay.textContent = colsA;
-                }
-            } else if (dimension === 'cols') {
-                colsA = Math.max(1, Math.min(6, colsA + change));
-                colsADisplay.textContent = colsA;
+                this.rowsA = Math.max(1, Math.min(6, this.rowsA + change));
+                this.rowsADisplay.textContent = this.rowsA;
+            } else {
+                this.colsA = Math.max(1, Math.min(6, this.colsA + change));
+                this.colsADisplay.textContent = this.colsA;
             }
-            generateMatrix('a', rowsA, colsA);
-        } else if (matrix === 'b') {
+            this.generateMatrix('a', this.rowsA, this.colsA);
+        } else {
             if (dimension === 'rows') {
-                rowsB = Math.max(1, Math.min(6, rowsB + change));
-                rowsBDisplay.textContent = rowsB;
-            } else if (dimension === 'cols') {
-                colsB = Math.max(1, Math.min(6, colsB + change));
-                colsBDisplay.textContent = colsB;
+                this.rowsB = Math.max(1, Math.min(6, this.rowsB + change));
+                this.rowsBDisplay.textContent = this.rowsB;
+            } else {
+                this.colsB = Math.max(1, Math.min(6, this.colsB + change));
+                this.colsBDisplay.textContent = this.colsB;
             }
-            generateMatrix('b', rowsB, colsB);
+            this.generateMatrix('b', this.rowsB, this.colsB);
         }
+
+        this.validateOperation();
     }
 
-    function updateVectorSize() {
-        generateVector('b', rowsA);
+    /**
+     * Обновление размера вектора
+     */
+    updateVectorSize() {
+        this.generateVector('b', this.rowsA);
     }
 
-    function generateMatrix(matrix, rows, cols) {
-        const container = matrix === 'a' ? matrixAContainer : matrixBContainer;
+    /**
+     * Генерация матрицы
+     */
+    generateMatrix(matrix, rows, cols) {
+        const container = matrix === 'a' ? this.matrixAContainer : this.matrixBContainer;
         container.innerHTML = '';
 
         for (let i = 0; i < rows; i++) {
@@ -193,19 +242,24 @@
                 input.type = 'number';
                 input.className = 'matrix-input form-control';
                 input.value = i === j ? '1' : '0';
-                input.step = 'any'; // Разрешаем ввод дробей
+                input.step = 'any';
                 input.dataset.row = i;
                 input.dataset.col = j;
+                input.placeholder = '0';
                 rowDiv.appendChild(input);
             }
 
             container.appendChild(rowDiv);
         }
+
+        this.validateOperation();
     }
 
-    function generateVector(vector, size) {
-        const container = vectorBContainer;
-        container.innerHTML = '';
+    /**
+     * Генерация вектора
+     */
+    generateVector(vector, size) {
+        this.vectorBContainer.innerHTML = '';
 
         for (let i = 0; i < size; i++) {
             const rowDiv = document.createElement('div');
@@ -215,16 +269,20 @@
             input.type = 'number';
             input.className = 'matrix-input form-control';
             input.value = '0';
-            input.step = 'any'; // Разрешаем ввод дробей
+            input.step = 'any';
             input.dataset.index = i;
+            input.placeholder = '0';
             rowDiv.appendChild(input);
 
-            container.appendChild(rowDiv);
+            this.vectorBContainer.appendChild(rowDiv);
         }
     }
 
-    function getMatrixValues(matrix) {
-        const container = matrix === 'a' ? matrixAContainer : matrixBContainer;
+    /**
+     * Получение значений матрицы
+     */
+    getMatrixValues(matrix) {
+        const container = matrix === 'a' ? this.matrixAContainer : this.matrixBContainer;
         const inputs = container.querySelectorAll('input');
         const rows = container.children.length;
         const cols = rows > 0 ? container.children[0].children.length : 0;
@@ -234,179 +292,277 @@
             matrixData[i] = [];
             for (let j = 0; j < cols; j++) {
                 const input = container.querySelector(`input[data-row="${i}"][data-col="${j}"]`);
-                matrixData[i][j] = parseNumber(input.value);
+                const value = parseFloat(input.value);
+                matrixData[i][j] = isNaN(value) ? 0 : value;
             }
         }
 
         return matrixData;
     }
 
-    function getVectorValues() {
-        const inputs = vectorBContainer.querySelectorAll('input');
-        const vectorData = [];
-
-        for (let i = 0; i < inputs.length; i++) {
-            vectorData.push(parseNumber(inputs[i].value));
-        }
-
-        return vectorData;
+    /**
+     * Получение значений вектора
+     */
+    getVectorValues() {
+        const inputs = this.vectorBContainer.querySelectorAll('input');
+        return Array.from(inputs).map(input => {
+            const value = parseFloat(input.value);
+            return isNaN(value) ? 0 : value;
+        });
     }
 
-    function calculate() {
-        const matrixA = getMatrixValues('a');
-        const matrixB = ['addition', 'subtraction', 'multiplication'].includes(currentOperation) ? getMatrixValues('b') : null;
-        const vectorB = currentOperation === 'sle' ? getVectorValues() : null;
-        const scalarValue = currentOperation === 'scalar-multiplication' ? parseNumber(scalarInput.value) : null;
+    /**
+     * Валидация операций
+     */
+    validateOperation() {
+        this.calculateButton.disabled = false;
 
-        // Здесь будет вызов API к бэкенду
-        // Временно просто отображаем результат с помощью функций-заглушек
+        try {
+            const matrixA = this.getMatrixValues('a');
 
-        let resultHTML = '';
-
-        switch (currentOperation) {
-            case 'determinant':
-                resultHTML = `<p>Определитель матрицы A:</p><h3>${simulateDeterminant(matrixA)}</h3>`;
-                break;
-            case 'inverse':
-                resultHTML = `<p>Обратная матрица A<sup>-1</sup>:</p><pre>${formatMatrix(simulateInverse(matrixA))}</pre>`;
-                break;
-            case 'addition':
-                resultHTML = `<p>Результат сложения матриц A + B:</p><pre>${formatMatrix(simulateAddition(matrixA, matrixB))}</pre>`;
-                break;
-            case 'subtraction':
-                resultHTML = `<p>Результат вычитания матриц A - B:</p><pre>${formatMatrix(simulateSubtraction(matrixA, matrixB))}</pre>`;
-                break;
-            case 'multiplication':
-                resultHTML = `<p>Результат умножения матриц A × B:</p><pre>${formatMatrix(simulateMultiplication(matrixA, matrixB))}</pre>`;
-                break;
-            case 'scalar-multiplication':
-                resultHTML = `<p>Результат умножения матрицы A на ${scalarInput.value}:</p><pre>${formatMatrix(simulateScalarMultiplication(matrixA, scalarValue))}</pre>`;
-                break;
-            case 'transpose':
-                resultHTML = `<p>Транспонированная матрица A<sup>T</sup>:</p><pre>${formatMatrix(simulateTranspose(matrixA))}</pre>`;
-                break;
-            case 'rank':
-                resultHTML = `<p>Ранг матрицы A:</p><h3>${simulateRank(matrixA)}</h3>`;
-                break;
-            case 'sle':
-                resultHTML = `<p>Решение СЛАУ:</p><pre>${formatVector(simulateSLE(matrixA, vectorB))}</pre>`;
-                break;
-        }
-
-        resultContainer.innerHTML = resultHTML;
-
-        // В реальном приложении здесь будет fetch запрос к API
-    }
-
-    // Функции-заглушки для имитации вычислений
-    function simulateDeterminant(matrix) {
-        // Заглушка для вычисления определителя
-        if (matrix.length === 2 && matrix[0].length === 2) {
-            return (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]).toFixed(4);
-        }
-        return "Для демонстрации";
-    }
-
-    function simulateInverse(matrix) {
-        // Заглушка для обратной матрицы
-        if (matrix.length === 2 && matrix[0].length === 2) {
-            const det = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
-            if (det === 0) return "Матрица вырождена";
-
-            return [
-                [matrix[1][1] / det, -matrix[0][1] / det],
-                [-matrix[1][0] / det, matrix[0][0] / det]
-            ];
-        }
-        return [[1, 0], [0, 1]]; // Заглушка для матриц большего размера
-    }
-
-    function simulateAddition(matrixA, matrixB) {
-        // Заглушка для сложения матриц
-        const result = [];
-        for (let i = 0; i < matrixA.length; i++) {
-            result[i] = [];
-            for (let j = 0; j < matrixA[i].length; j++) {
-                result[i][j] = matrixA[i][j] + matrixB[i][j];
-            }
-        }
-        return result;
-    }
-
-    function simulateSubtraction(matrixA, matrixB) {
-        // Заглушка для вычитания матриц
-        const result = [];
-        for (let i = 0; i < matrixA.length; i++) {
-            result[i] = [];
-            for (let j = 0; j < matrixA[i].length; j++) {
-                result[i][j] = matrixA[i][j] - matrixB[i][j];
-            }
-        }
-        return result;
-    }
-
-    function simulateMultiplication(matrixA, matrixB) {
-        // Заглушка для умножения матриц
-        const result = [];
-        for (let i = 0; i < matrixA.length; i++) {
-            result[i] = [];
-            for (let j = 0; j < matrixB[0].length; j++) {
-                result[i][j] = 0;
-                for (let k = 0; k < matrixA[0].length; k++) {
-                    result[i][j] += matrixA[i][k] * matrixB[k][j];
+            if (['addition', 'subtraction'].includes(this.currentOperation)) {
+                const matrixB = this.getMatrixValues('b');
+                if (matrixA.length !== matrixB.length || matrixA[0].length !== matrixB[0].length) {
+                    throw new Error('Матрицы должны быть одинакового размера');
                 }
             }
-        }
-        return result;
-    }
 
-    function simulateScalarMultiplication(matrix, scalar) {
-        // Заглушка для умножения матрицы на число
-        const result = [];
-        for (let i = 0; i < matrix.length; i++) {
-            result[i] = [];
-            for (let j = 0; j < matrix[i].length; j++) {
-                result[i][j] = matrix[i][j] * scalar;
+            if (this.currentOperation === 'multiplication') {
+                const matrixB = this.getMatrixValues('b');
+                if (matrixA[0].length !== matrixB.length) {
+                    throw new Error('Число столбцов матрицы A должно равняться числу строк матрицы B');
+                }
             }
-        }
-        return result;
-    }
 
-    function simulateTranspose(matrix) {
-        // Заглушка для транспонирования матрицы
-        const result = [];
-        for (let j = 0; j < matrix[0].length; j++) {
-            result[j] = [];
-            for (let i = 0; i < matrix.length; i++) {
-                result[j][i] = matrix[i][j];
+            if (['determinant', 'inverse'].includes(this.currentOperation) && matrixA.length !== matrixA[0].length) {
+                throw new Error('Матрица должна быть квадратной');
             }
+
+        } catch (error) {
+            this.calculateButton.disabled = true;
         }
-        return result;
     }
 
-    function simulateRank(matrix) {
-        // Заглушка для нахождения ранга матрицы
-        return Math.min(matrix.length, matrix[0].length);
+    /**
+     * Валидация скалярного ввода
+     */
+    validateScalarInput() {
+        const value = parseFloat(this.scalarInput.value);
+        this.scalarInput.classList.toggle('is-invalid', isNaN(value));
+        this.validateOperation();
     }
 
-    function simulateSLE(matrixA, vectorB) {
-        // Заглушка для решения СЛАУ
-        const result = [];
-        for (let i = 0; i < vectorB.length; i++) {
-            result.push((vectorB[i] / matrixA[i][i]).toFixed(4));
+    /**
+     * Валидация матрицы
+     */
+    validateMatrixInput(matrix) {
+        const container = matrix === 'a' ? this.matrixAContainer : this.matrixBContainer;
+        const inputs = container.querySelectorAll('input');
+
+        let hasError = false;
+        inputs.forEach(input => {
+            const isValid = !input.value || !isNaN(parseFloat(input.value));
+            input.classList.toggle('is-invalid', !isValid);
+            if (!isValid) hasError = true;
+        });
+
+        this.validateOperation();
+        return !hasError;
+    }
+
+    /**
+     * Валидация вектора
+     */
+    validateVectorInput() {
+        const inputs = this.vectorBContainer.querySelectorAll('input');
+        let hasError = false;
+
+        inputs.forEach(input => {
+            const isValid = !input.value || !isNaN(parseFloat(input.value));
+            input.classList.toggle('is-invalid', !isValid);
+            if (!isValid) hasError = true;
+        });
+
+        this.validateOperation();
+        return !hasError;
+    }
+
+    /**
+     * Основная функция расчета
+     */
+    async calculate() {
+        this.hideResults();
+        this.setLoadingState(true);
+
+        try {
+            const matrixA = this.getMatrixValues('a');
+            const matrixB = ['addition', 'subtraction', 'multiplication'].includes(this.currentOperation) ?
+                this.getMatrixValues('b') : null;
+            const vectorB = this.currentOperation === 'sle' ? this.getVectorValues() : null;
+            const scalarValue = this.currentOperation === 'scalar-multiplication' ?
+                parseFloat(this.scalarInput.value) || 1 : null;
+
+            this.validateInputData(matrixA, matrixB, vectorB, scalarValue);
+
+            let result;
+            switch (this.currentOperation) {
+                case 'determinant':
+                    result = await window.matrixAPI.determinant(matrixA);
+                    this.displayResult(`Определитель матрицы A = ${this.formatNumber(result)}`);
+                    break;
+
+                case 'inverse':
+                    result = await window.matrixAPI.inverseMatrix(matrixA);
+                    this.displayResult(`Обратная матрица A<sup>-1</sup>:`, this.formatMatrix(result));
+                    break;
+
+                case 'addition':
+                    result = await window.matrixAPI.addMatrices(matrixA, matrixB);
+                    this.displayResult('Результат сложения A + B:', this.formatMatrix(result));
+                    break;
+
+                case 'subtraction':
+                    const negativeB = matrixB.map(row => row.map(val => -val));
+                    result = await window.matrixAPI.addMatrices(matrixA, negativeB);
+                    this.displayResult('Результат вычитания A - B:', this.formatMatrix(result));
+                    break;
+
+                case 'multiplication':
+                    result = await window.matrixAPI.multiplyMatrices(matrixA, matrixB);
+                    this.displayResult('Результат умножения A × B:', this.formatMatrix(result));
+                    break;
+
+                case 'scalar-multiplication':
+                    result = matrixA.map(row => row.map(val => val * scalarValue));
+                    this.displayResult(`Результат умножения на ${scalarValue}:`, this.formatMatrix(result));
+                    break;
+
+                case 'transpose':
+                    result = matrixA[0].map((_, colIndex) => matrixA.map(row => row[colIndex]));
+                    this.displayResult('Транспонированная матрица A<sup>T</sup>:', this.formatMatrix(result));
+                    break;
+
+                case 'rank':
+                    result = this.calculateMatrixRank(matrixA);
+                    this.displayResult(`Ранг матрицы A = ${result}`);
+                    break;
+
+                case 'sle':
+                    result = await window.matrixAPI.solveSystem(matrixA, vectorB);
+                    this.displayResult('Решение системы уравнений:', this.formatVector(result));
+                    break;
+            }
+
+            this.saveToHistory(this.currentOperation, { matrixA, matrixB, vectorB, scalarValue }, result);
+
+        } catch (error) {
+            this.showError(error.message);
+        } finally {
+            this.setLoadingState(false);
         }
-        return result;
     }
 
-    function formatMatrix(matrix) {
-        if (typeof matrix === 'string') return matrix;
+    /**
+     * Валидация входных данных
+     */
+    validateInputData(matrixA, matrixB, vectorB, scalarValue) {
+        if (!matrixA || matrixA.length === 0) {
+            throw new Error('Матрица A не может быть пустой');
+        }
 
+        if (this.currentOperation === 'scalar-multiplication' && isNaN(scalarValue)) {
+            throw new Error('Введите корректное число для умножения');
+        }
+    }
+
+    // === МЕТОДЫ ОТОБРАЖЕНИЯ ===
+
+    displayResult(title, content = '') {
+        this.resultContainer.innerHTML = `
+            <div class="alert alert-success">
+                <h5>${title}</h5>
+                ${content ? `<pre class="mt-2">${content}</pre>` : ''}
+            </div>
+        `;
+        this.resultContainer.style.display = 'block';
+    }
+
+    showError(message) {
+        this.errorContent.textContent = message;
+        this.errorContainer.style.display = 'block';
+        this.hideResults();
+
+        setTimeout(() => {
+            this.errorContainer.style.display = 'none';
+        }, 5000);
+    }
+
+    showWarning(message) {
+        const warning = document.createElement('div');
+        warning.className = 'alert alert-warning alert-dismissible fade show';
+        warning.innerHTML = `
+            <i class="bi bi-exclamation-triangle"></i> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.querySelector('.calculator-container').insertBefore(warning, document.querySelector('.header'));
+    }
+
+    hideResults() {
+        this.resultContainer.style.display = 'none';
+        this.errorContainer.style.display = 'none';
+    }
+
+    setLoadingState(isLoading) {
+        this.calculateButton.disabled = isLoading;
+        this.calculateButton.innerHTML = isLoading
+            ? '<div class="spinner-border spinner-border-sm" role="status"></div> Вычисление...'
+            : '<i class="bi bi-calculator"></i> Вычислить';
+    }
+
+    // === ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ===
+
+    formatNumber(num) {
+        if (typeof num !== 'number') return num;
+        return Math.abs(num) < 1e-10 ? '0' : num.toFixed(6).replace(/\.?0+$/, '');
+    }
+
+    formatMatrix(matrix) {
         return matrix.map(row =>
-            row.map(val => typeof val === 'number' ? val.toFixed(4) : val).join('\t')
+            row.map(val => this.formatNumber(val)).join('\t')
         ).join('\n');
     }
 
-    function formatVector(vector) {
-        return vector.map(val => typeof val === 'number' ? val.toFixed(4) : val).join('\n');
+    formatVector(vector) {
+        return vector.map((val, index) =>
+            `x${index + 1} = ${this.formatNumber(val)}`
+        ).join('\n');
     }
+
+    calculateMatrixRank(matrix) {
+        // Упрощенная реализация ранга
+        return Math.min(matrix.length, matrix[0].length);
+    }
+
+    saveToHistory(operation, input, result) {
+        try {
+            const history = JSON.parse(localStorage.getItem('matrixHistory') || '[]');
+            const historyItem = {
+                operation,
+                input,
+                result,
+                timestamp: new Date().toLocaleString('ru-RU')
+            };
+
+            history.unshift(historyItem);
+            localStorage.setItem('matrixHistory', JSON.stringify(history.slice(0, 10)));
+        } catch (error) {
+            console.warn('Не удалось сохранить историю:', error);
+        }
+    }
+}
+
+// Инициализация приложения после загрузки DOM
+document.addEventListener('DOMContentLoaded', function () {
+    new MatrixCalculatorUI();
 });
