@@ -1,4 +1,4 @@
-body {
+﻿body {
     background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
@@ -186,4 +186,27 @@ body {
     width: 100px;
     text-align: center;
 }
+
+
+/* --- Фиксированная сетка для кнопок --- */
+.operations-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* ровно 4 кнопки в строке */
+    gap: 12px;
+}
+
+/* 📱 адаптивность: на планшете по 2 кнопки */
+@media (max-width: 768px) {
+    .operations-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* 📱 ещё меньше экран (телефон) — по одной кнопке */
+@media (max-width: 480px) {
+    .operations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 

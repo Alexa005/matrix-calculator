@@ -1,12 +1,12 @@
-// api.js - Клиент для работы с API матричного калькулятора
+п»ї// api.js - РљР»РёРµРЅС‚ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ API РјР°С‚СЂРёС‡РЅРѕРіРѕ РєР°Р»СЊРєСѓР»СЏС‚РѕСЂР°
 class MatrixAPIClient {
     constructor(baseURL = 'http://localhost:8000') {
         this.baseURL = baseURL;
-        this.timeout = 10000; // 10 секунд таймаут
+        this.timeout = 10000; // 10 СЃРµРєСѓРЅРґ С‚Р°Р№РјР°СѓС‚
     }
 
     /**
-     * Универсальная функция для отправки запросов к API
+     * РЈРЅРёРІРµСЂСЃР°Р»СЊРЅР°СЏ С„СѓРЅРєС†РёСЏ РґР»СЏ РѕС‚РїСЂР°РІРєРё Р·Р°РїСЂРѕСЃРѕРІ Рє API
      */
     async _request(endpoint, data) {
         const controller = new AbortController();
@@ -38,25 +38,25 @@ class MatrixAPIClient {
 
         } catch (error) {
             clearTimeout(timeoutId);
-            
+
             if (error.name === 'AbortError') {
-                throw new Error('Превышено время ожидания ответа от сервера');
+                throw new Error('РџСЂРµРІС‹С€РµРЅРѕ РІСЂРµРјСЏ РѕР¶РёРґР°РЅРёСЏ РѕС‚РІРµС‚Р° РѕС‚ СЃРµСЂРІРµСЂР°');
             }
-            
+
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                throw new Error('Не удалось подключиться к серверу. Проверьте, запущен ли бэкенд на localhost:8000');
+                throw new Error('РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґРєР»СЋС‡РёС‚СЊСЃСЏ Рє СЃРµСЂРІРµСЂСѓ. РџСЂРѕРІРµСЂСЊС‚Рµ, Р·Р°РїСѓС‰РµРЅ Р»Рё Р±СЌРєРµРЅРґ РЅР° localhost:8000');
             }
-            
+
             throw error;
         }
     }
 
     /**
-     * Проверка здоровья сервера
+     * РџСЂРѕРІРµСЂРєР° Р·РґРѕСЂРѕРІСЊСЏ СЃРµСЂРІРµСЂР°
      */
     async healthCheck() {
         try {
-            const response = await fetch(`${this.baseURL}/health`);
+            const response = await fetch(`${this.baseURL}/health`, { timeout: 3000 });
             const data = await response.json();
             return data.status === 'ok';
         } catch (error) {
@@ -65,7 +65,7 @@ class MatrixAPIClient {
     }
 
     /**
-     * Вычисление определителя матрицы
+     * Р’С‹С‡РёСЃР»РµРЅРёРµ РѕРїСЂРµРґРµР»РёС‚РµР»СЏ РјР°С‚СЂРёС†С‹
      */
     async determinant(matrix) {
         this._validateMatrix(matrix, 'determinant');
@@ -73,133 +73,121 @@ class MatrixAPIClient {
     }
 
     /**
-     * Сложение двух матриц
+     * РЎР»РѕР¶РµРЅРёРµ РґРІСѓС… РјР°С‚СЂРёС†
      */
     async addMatrices(matrixA, matrixB) {
         this._validateMatrix(matrixA, 'addition');
         this._validateMatrix(matrixB, 'addition');
-        
+
         if (matrixA.length !== matrixB.length || matrixA[0].length !== matrixB[0].length) {
-            throw new Error('Матрицы должны быть одинакового размера для сложения');
+            throw new Error('РњР°С‚СЂРёС†С‹ РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РѕРґРёРЅР°РєРѕРІРѕРіРѕ СЂР°Р·РјРµСЂР° РґР»СЏ СЃР»РѕР¶РµРЅРёСЏ');
         }
 
-        return await this._request('add', { 
-            matrix_a: matrixA, 
-            matrix_b: matrixB 
+        return await this._request('add', {
+            matrix_a: matrixA,
+            matrix_b: matrixB
         });
     }
 
     /**
-     * Умножение двух матриц
+     * РЈРјРЅРѕР¶РµРЅРёРµ РґРІСѓС… РјР°С‚СЂРёС†
      */
     async multiplyMatrices(matrixA, matrixB) {
         this._validateMatrix(matrixA, 'multiplication');
         this._validateMatrix(matrixB, 'multiplication');
-        
+
         if (matrixA[0].length !== matrixB.length) {
-            throw new Error('Число столбцов матрицы A должно равняться числу строк матрицы B');
+            throw new Error('Р§РёСЃР»Рѕ СЃС‚РѕР»Р±С†РѕРІ РјР°С‚СЂРёС†С‹ A РґРѕР»Р¶РЅРѕ СЂР°РІРЅСЏС‚СЊСЃСЏ С‡РёСЃР»Сѓ СЃС‚СЂРѕРє РјР°С‚СЂРёС†С‹ B');
         }
 
-        return await this._request('multiply', { 
-            matrix_a: matrixA, 
-            matrix_b: matrixB 
+        return await this._request('multiply', {
+            matrix_a: matrixA,
+            matrix_b: matrixB
         });
     }
 
     /**
-     * Нахождение обратной матрицы
+     * РќР°С…РѕР¶РґРµРЅРёРµ РѕР±СЂР°С‚РЅРѕР№ РјР°С‚СЂРёС†С‹
      */
     async inverseMatrix(matrix) {
         this._validateMatrix(matrix, 'inverse');
-        
+
         if (matrix.length !== matrix[0].length) {
-            throw new Error('Матрица должна быть квадратной для нахождения обратной матрицы');
+            throw new Error('РњР°С‚СЂРёС†Р° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РєРІР°РґСЂР°С‚РЅРѕР№ РґР»СЏ РЅР°С…РѕР¶РґРµРЅРёСЏ РѕР±СЂР°С‚РЅРѕР№ РјР°С‚СЂРёС†С‹');
         }
 
         return await this._request('inverse', { matrix });
     }
 
     /**
-     * Решение системы линейных уравнений
+     * Р РµС€РµРЅРёРµ СЃРёСЃС‚РµРјС‹ Р»РёРЅРµР№РЅС‹С… СѓСЂР°РІРЅРµРЅРёР№
      */
     async solveSystem(coefficients, constants) {
         this._validateMatrix(coefficients, 'sle');
         this._validateVector(constants, 'sle');
-        
+
         if (coefficients.length !== constants.length) {
-            throw new Error('Количество уравнений должно совпадать с количеством свободных членов');
+            throw new Error('РљРѕР»РёС‡РµСЃС‚РІРѕ СѓСЂР°РІРЅРµРЅРёР№ РґРѕР»Р¶РЅРѕ СЃРѕРІРїР°РґР°С‚СЊ СЃ РєРѕР»РёС‡РµСЃС‚РІРѕРј СЃРІРѕР±РѕРґРЅС‹С… С‡Р»РµРЅРѕРІ');
         }
 
-        return await this._request('solve', { 
-            coefficients, 
-            constants 
+        return await this._request('solve', {
+            coefficients,
+            constants
         });
     }
 
-    async transposeMatrix(matrix) {
-        this._validateMatrix(matrix, 'transpose');
-        return await this._request('transpose', { matrix });
-    }
-
-    async rankMatrix(matrix) {
-        this._validateMatrix(matrix, 'rank');
-        return await this._request('rank', { matrix });
-    }
-
-
-
     /**
-     * Валидация матрицы
+     * Р’Р°Р»РёРґР°С†РёСЏ РјР°С‚СЂРёС†С‹
      */
     _validateMatrix(matrix, operation) {
         if (!Array.isArray(matrix) || matrix.length === 0) {
-            throw new Error('Матрица должна быть непустым двумерным массивом');
+            throw new Error('РњР°С‚СЂРёС†Р° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РЅРµРїСѓСЃС‚С‹Рј РґРІСѓРјРµСЂРЅС‹Рј РјР°СЃСЃРёРІРѕРј');
         }
 
         const rows = matrix.length;
         const cols = matrix[0].length;
 
         if (!Array.isArray(matrix[0]) || cols === 0) {
-            throw new Error('Матрица должна содержать непустые строки');
+            throw new Error('РњР°С‚СЂРёС†Р° РґРѕР»Р¶РЅР° СЃРѕРґРµСЂР¶Р°С‚СЊ РЅРµРїСѓСЃС‚С‹Рµ СЃС‚СЂРѕРєРё');
         }
 
-        // Проверяем что все строки одинаковой длины
+        // РџСЂРѕРІРµСЂСЏРµРј С‡С‚Рѕ РІСЃРµ СЃС‚СЂРѕРєРё РѕРґРёРЅР°РєРѕРІРѕР№ РґР»РёРЅС‹
         for (let i = 1; i < rows; i++) {
             if (!Array.isArray(matrix[i]) || matrix[i].length !== cols) {
-                throw new Error('Все строки матрицы должны иметь одинаковую длину');
+                throw new Error('Р’СЃРµ СЃС‚СЂРѕРєРё РјР°С‚СЂРёС†С‹ РґРѕР»Р¶РЅС‹ РёРјРµС‚СЊ РѕРґРёРЅР°РєРѕРІСѓСЋ РґР»РёРЅСѓ');
             }
         }
 
-        // Проверяем что все элементы - числа
+        // РџСЂРѕРІРµСЂСЏРµРј С‡С‚Рѕ РІСЃРµ СЌР»РµРјРµРЅС‚С‹ - С‡РёСЃР»Р°
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
                 if (typeof matrix[i][j] !== 'number' || !isFinite(matrix[i][j])) {
-                    throw new Error('Все элементы матрицы должны быть конечными числами');
+                    throw new Error('Р’СЃРµ СЌР»РµРјРµРЅС‚С‹ РјР°С‚СЂРёС†С‹ РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РєРѕРЅРµС‡РЅС‹РјРё С‡РёСЃР»Р°РјРё');
                 }
             }
         }
 
-        // Специфичные проверки для операций
+        // РЎРїРµС†РёС„РёС‡РЅС‹Рµ РїСЂРѕРІРµСЂРєРё РґР»СЏ РѕРїРµСЂР°С†РёР№
         if ((operation === 'determinant' || operation === 'inverse') && rows !== cols) {
-            throw new Error('Матрица должна быть квадратной для этой операции');
+            throw new Error('РњР°С‚СЂРёС†Р° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РєРІР°РґСЂР°С‚РЅРѕР№ РґР»СЏ СЌС‚РѕР№ РѕРїРµСЂР°С†РёРё');
         }
     }
 
     /**
-     * Валидация вектора
+     * Р’Р°Р»РёРґР°С†РёСЏ РІРµРєС‚РѕСЂР°
      */
     _validateVector(vector, operation) {
         if (!Array.isArray(vector) || vector.length === 0) {
-            throw new Error('Вектор должен быть непустым массивом');
+            throw new Error('Р’РµРєС‚РѕСЂ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РЅРµРїСѓСЃС‚С‹Рј РјР°СЃСЃРёРІРѕРј');
         }
 
         for (let i = 0; i < vector.length; i++) {
             if (typeof vector[i] !== 'number' || !isFinite(vector[i])) {
-                throw new Error('Все элементы вектора должны быть конечными числами');
+                throw new Error('Р’СЃРµ СЌР»РµРјРµРЅС‚С‹ РІРµРєС‚РѕСЂР° РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РєРѕРЅРµС‡РЅС‹РјРё С‡РёСЃР»Р°РјРё');
             }
         }
     }
 }
 
-// Создаем глобальный экземпляр API
+// РЎРѕР·РґР°РµРј РіР»РѕР±Р°Р»СЊРЅС‹Р№ СЌРєР·РµРјРїР»СЏСЂ API
 window.matrixAPI = new MatrixAPIClient();
